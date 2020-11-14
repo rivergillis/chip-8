@@ -1,3 +1,4 @@
 roms/
 .DS_Store
-
+.o
+chip8
