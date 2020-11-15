@@ -43,17 +43,19 @@ void Image::SetAll(uint8_t value) {
 bool Image::XORSprite(int c, int r, int height, uint8_t* sprite) {
   // TODO: Should be able to draw near edges of screen, and just draw as much
   // of the sprite as we can. OOB only if we START OOB
-  if (c + 8 > cols_ || r + height > rows_) {
+  if (c >= cols_ || r >= rows_) {
     throw std::runtime_error("Sprite renders out of bounds.");
   }
   bool pixel_was_disabled = false;
   int dots = 0;
   for (int y = 0; y < height; y++) {
     int current_r = r + y;
+    if (current_r >= rows_) break;
     uint8_t sprite_byte = sprite[y];
     DBG("%X ", sprite_byte);
     for (int x = 0; x < 8; x++) {
       int current_c = c + x;
+      if (current_c >= cols_) break;
       // Note: We scan from MSbit to LSbit
       uint8_t sprite_val = (sprite_byte & (0x80 >> x)) >> (7-x);
       if (sprite_val > 0) {

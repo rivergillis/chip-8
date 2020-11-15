@@ -9,8 +9,8 @@
 void Run() {
   CpuChip8 cpu;
   cpu.Initialize();
-  cpu.LoadROM("/Users/river/code/chip8/roms/BRIX");
-  for (int i = 0; i < 300; ++i) {
+  cpu.LoadROM("/Users/river/code/chip8/roms/MAZE");
+  for (int i = 0; i < 1000; ++i) {
     cpu.RunCycle();
   }
   std::cout << "Exit main() success";
