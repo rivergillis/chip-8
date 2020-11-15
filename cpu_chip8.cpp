@@ -111,11 +111,13 @@ void CpuChip8::LoadROM(const std::string& filename) {
          (std::istreambuf_iterator<char>()));
   if (bytes.size() > kMaxROMSize) {
     throw std::runtime_error("File size is bigger than max rom size.");
+  } else if (bytes.size() <= 0) {
+    throw std::runtime_error("No file or empty file.");
   }
   std::memcpy(memory_ + 0x200, bytes.data(), bytes.size());
-  for (const uint8_t byte : bytes) {
-    std::cout << "0x" << std::hex << std::setfill('0') << std::setw(2) << static_cast<int>(byte) << "\t";
-  }
+  // for (const uint8_t byte : bytes) {
+  //   std::cout << "0x" << std::hex << std::setfill('0') << std::setw(2) << static_cast<int>(byte) << "\t";
+  // }
   std::cout << std::endl << std::dec << "Loaded " << bytes.size() << " byte ROM " << filename << std::endl;
   DbgMem();
 }
@@ -333,6 +335,7 @@ CpuChip8::Instruction CpuChip8::GenDRAW(uint8_t reg_x, uint8_t reg_y, uint8_t n_
     bool pixels_unset = frame_.XORSprite(x_coord, y_coord, n_rows,
       memory_ + index_register_);
     v_registers_[0xF] = pixels_unset;
+    DBG("\n");
     frame_.DrawToStdout();
     NEXT;
   };

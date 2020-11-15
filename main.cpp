@@ -9,7 +9,7 @@
 void Run() {
   CpuChip8 cpu;
   cpu.Initialize();
-  cpu.LoadROM("/Users/river/code/chip8/roms/test_opcode.ch8");
+  cpu.LoadROM("/Users/river/code/chip8/roms/BRIX");
   for (int i = 0; i < 300; ++i) {
     cpu.RunCycle();
   }

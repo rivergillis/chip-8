@@ -19,8 +19,9 @@ class Image {
     void SetAll(uint8_t value);
 
     // XOR render sprite to image starting at top-left corner c,r.
-    // Renders 1-byte of width and height rows. Returns whether or
-    // not any pixels were set to 0 by this operation.
+    // c,r must be within the image. Up to 1-byte of width and up
+    // to height rows will be rendered, depending on the image bounds.
+    // Returns whether or not any pixels were set to 0 by this operation.
     bool XORSprite(int c, int r, int height, uint8_t* sprite);
 
     void Print();
