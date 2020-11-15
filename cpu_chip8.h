@@ -56,6 +56,13 @@ class CpuChip8 {
     Instruction GenSNKEY(uint8_t reg);
     Instruction GenRDELAY(uint8_t reg);
     Instruction GenWAITKEY(uint8_t reg);
+    Instruction GenWDELAY(uint8_t reg);
+    Instruction GenWSOUND(uint8_t reg);
+    Instruction GenADDI(uint8_t reg);
+    Instruction GenLDSPRITE(uint8_t reg);
+    Instruction GenSTBCD(uint8_t reg);
+    Instruction GenSTREG(uint8_t reg);
+    Instruction GenLDREG(uint8_t reg);
 
     void DbgMem();
 
@@ -85,7 +92,7 @@ class CpuChip8 {
     uint8_t sound_timer_;
 
     uint16_t stack_[16];
-    // TODO: make this pointer into stack_?
+    // Points to the next empty spot.
     uint16_t stack_pointer_;
 
     // 0 when not pressed.

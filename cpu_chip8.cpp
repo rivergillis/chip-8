@@ -126,8 +126,8 @@ void CpuChip8::BuildInstructionSet() {
 
   instructions_[0x00E0] = [this]() { frame_.SetAll(0); DBG("CLS"); NEXT; };
   instructions_[0x00EE] = [this]() {
-    DBG("RET");
-    program_counter_ = stack_[stack_pointer_--];  // RET
+    program_counter_ = stack_[--stack_pointer_] + 2;  // RET
+    DBG("RET -- POPPED pc=0x%X off the stack.", program_counter_);
   };
 
   for (int opcode = 0x1000; opcode < 0xFFFF; opcode++) {
@@ -186,10 +186,21 @@ void CpuChip8::BuildInstructionSet() {
       instructions_[opcode] = GenRDELAY(x);
     } else if ((opcode & 0xF0FF) == 0xF00A) {
       instructions_[opcode] = GenWAITKEY(x);
+    } else if ((opcode & 0xF0FF) == 0xF015) {
+      instructions_[opcode] = GenWDELAY(x);
+    } else if ((opcode & 0xF0FF) == 0xF018) {
+      instructions_[opcode] = GenWSOUND(x);
+    } else if ((opcode & 0xF0FF) == 0xF01E) {
+      instructions_[opcode] = GenADDI(x);
+    } else if ((opcode & 0xF0FF) == 0xF029) {
+      instructions_[opcode] = GenLDSPRITE(x);
+    } else if ((opcode & 0xF0FF) == 0xF033) {
+      instructions_[opcode] = GenSTBCD(x);
+    } else if ((opcode & 0xF0FF) == 0xF055) {
+      instructions_[opcode] = GenSTREG(x);
+    } else if ((opcode & 0xF0FF) == 0xF065) {
+      instructions_[opcode] = GenLDREG(x);
     }
-
-
-
   }
 }
 
@@ -199,6 +210,7 @@ CpuChip8::Instruction CpuChip8::GenJP(uint16_t addr) {
 CpuChip8::Instruction CpuChip8::GenCALL(uint16_t addr) {
   return [this, addr]() {
     stack_[stack_pointer_++] = program_counter_;
+    DBG("CALL 0x%X - PUSH 0x%X onto stack", addr, stack_[stack_pointer_ - 1]);
     program_counter_ = addr;
   };
 }
@@ -343,10 +355,61 @@ CpuChip8::Instruction CpuChip8::GenRDELAY(uint8_t reg) {
 }
 CpuChip8::Instruction CpuChip8::GenWAITKEY(uint8_t reg) {
   return [this, reg]() {
-    std::cout << "Implement waitkey!" << std::endl;
+    throw std::runtime_error("Implement waitkey!");
     NEXT;
   };
 }
+CpuChip8::Instruction CpuChip8::GenWDELAY(uint8_t reg) {
+  return [this, reg]() {
+    delay_timer_ = v_registers_[reg];
+    NEXT;
+  };
+}
+CpuChip8::Instruction CpuChip8::GenWSOUND(uint8_t reg) {
+  return [this, reg]() {
+    sound_timer_ = v_registers_[reg];
+    NEXT;
+  };
+}
+CpuChip8::Instruction CpuChip8::GenADDI(uint8_t reg) {
+  return [this, reg]() {
+    index_register_ += v_registers_[reg];
+    NEXT;
+  };
+}
+CpuChip8::Instruction CpuChip8::GenLDSPRITE(uint8_t reg) {
+  return [this, reg]() {
+    uint8_t digit = v_registers_[reg];
+    index_register_ = memory_[0x50 + (5 * digit)];
+    NEXT;
+  };
+}
+CpuChip8::Instruction CpuChip8::GenSTBCD(uint8_t reg) {
+  return [this, reg]() {
+    uint8_t value = v_registers_[reg];
+    memory_[index_register_]     = value / 100;
+    memory_[index_register_ + 1] = (value / 10) % 10;
+    memory_[index_register_ + 2] = (value % 100) % 10;
+    NEXT;
+  };
+}
+CpuChip8::Instruction CpuChip8::GenSTREG(uint8_t reg) {
+  return [this, reg]() {
+    for (uint8_t v = 0; v <= reg; v++) {
+      memory_[index_register_ + v] = v_registers_[v];
+    }
+    NEXT;
+  };
+}
+CpuChip8::Instruction CpuChip8::GenLDREG(uint8_t reg) {
+  return [this, reg]() {
+    for (uint8_t v = 0; v <= reg; v++) {
+      v_registers_[v] = memory_[index_register_ + v];
+    }
+    NEXT;
+  };
+}
+
 
 void CpuChip8::DbgMem() {
   for (int i = 0; i <= 0xFFF; i += 0x10) {

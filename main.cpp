@@ -9,10 +9,11 @@
 void Run() {
   CpuChip8 cpu;
   cpu.Initialize();
-  cpu.LoadROM("/Users/river/code/chip8/roms/ibm_logo.ch8");
-  for (int i = 0; i < 100; ++i) {
+  cpu.LoadROM("/Users/river/code/chip8/roms/test_opcode.ch8");
+  for (int i = 0; i < 300; ++i) {
     cpu.RunCycle();
   }
+  std::cout << "Exit main() success";
 }
 
 int main() {
