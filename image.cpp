@@ -28,7 +28,7 @@ uint8_t* Image::Row(int r) {
   return &data_[r * cols_];
 }
 
-uint8_t& Image::operator()(int c, int r) {
+uint8_t& Image::At(int c, int r) {
   if (c < 0 || c >= cols_) {
     throw std::runtime_error("Column out of bounds.");
   }
@@ -41,8 +41,6 @@ void Image::SetAll(uint8_t value) {
 
 
 bool Image::XORSprite(int c, int r, int height, uint8_t* sprite) {
-  // TODO: Should be able to draw near edges of screen, and just draw as much
-  // of the sprite as we can. OOB only if we START OOB
   if (c >= cols_ || r >= rows_) {
     throw std::runtime_error("Sprite renders out of bounds.");
   }
@@ -61,19 +59,24 @@ bool Image::XORSprite(int c, int r, int height, uint8_t* sprite) {
       if (sprite_val > 0) {
         dots++;
       }
-      uint8_t& val = operator()(current_c, current_r);
-      val |= sprite_val;
-      pixel_was_disabled |= val == 0;
+      pixel_was_disabled |= XOR(current_c, current_r, sprite_val);
     }
   }
   DBG(" %d dots", dots);
   return pixel_was_disabled;
 }
 
+bool Image::XOR(int c, int r, uint8_t val) {
+  uint8_t& current_val = At(c, r);
+  uint8_t prev_val = current_val;
+  current_val ^= val;
+  return current_val == 0 && prev_val >= 0;
+}
+
 void Image::Print() {
   for (int r = 0; r < rows_; r++) {
     for (int c = 0; c < cols_; c++) {
-      std::cout << std::setfill('0') << std::setw(3) << static_cast<int>(operator()(c,r)) << " ";
+      std::cout << std::setfill('0') << std::setw(3) << static_cast<int>(At(c,r)) << " ";
     }
     std::cout << std::endl;
   }
@@ -83,7 +86,7 @@ void Image::Print() {
 void Image::DrawToStdout() {
   for (int r = 0; r < rows_; r++) {
     for (int c = 0; c < cols_; c++) {
-      if (operator()(c,r) > 0) {
+      if (At(c,r) > 0) {
         std::cout << "X";
       } else {
         std::cout << " ";

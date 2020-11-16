@@ -14,7 +14,8 @@ class Image {
     uint8_t* Row(int r);
 
     // Returns a pixel that can be changed.
-    uint8_t& operator()(int c, int r);
+    uint8_t& At(int c, int r);
+    uint8_t& operator()(int c, int r) { return At(c, r); }
 
     void SetAll(uint8_t value);
 
@@ -28,6 +29,9 @@ class Image {
     void DrawToStdout();
 
   private:
+    // XOR a pixel with val. Returns true if the pixel was set to 0.
+    bool XOR(int c, int r, uint8_t val);
+
     int cols_;
     int rows_;
 
