@@ -2,6 +2,9 @@
 #include <vector>
 #include <string>
 
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
+
 #include "image.h"
 #include "cpu_chip8.h"
 
@@ -14,6 +17,15 @@ void Run() {
     cpu.RunCycle();
   }
   std::cout << "Exit main() success";
+
+      if(SDL_Init(SDL_INIT_VIDEO) < 0) {
+        std::cout << "SDL init failed." << std::endl;
+        return;
+    }
+
+    std::cout << "SDL Init succeeded." << std::endl;
+
+    SDL_Quit();
 }
 
 int main() {

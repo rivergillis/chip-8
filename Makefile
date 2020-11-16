@@ -1,9 +1,10 @@
 CXX=g++
 RM=rm -f
-CXXFLAGS=-c --std=c++11 -Wall -D DEBUG
+SDL2CFLAGS=-I/usr/local/include/SDL2 -D_THREAD_SAFE
+CXXFLAGS=-c --std=c++11 -Wall $(SDL2CFLAGS) -D DEBUG
 
 # Load dynamic libs here
-LDFLAGS=
+LDFLAGS=-L/usr/local/lib -lSDL2
 
 chip8: main.o image.o cpu_chip8.o
 	$(CXX) $(LDFLAGS) -o chip8 main.o image.o cpu_chip8.o
