@@ -25,6 +25,14 @@ class Image {
     // Returns whether or not any pixels were set to 0 by this operation.
     bool XORSprite(int c, int r, int height, uint8_t* sprite);
 
+    int Cols() { return cols_; }
+    int Rows() { return rows_; }
+
+    // The size of the allocated output buffer is exactly
+    // Cols() * Rows() * 3.
+    // Formatted interleaved RGBRGBRGB...
+    void CopyToRGB24(uint8_t* dst, int red_scale, int green_scale, int blue_scale);
+
     void Print();
     void DrawToStdout();
 

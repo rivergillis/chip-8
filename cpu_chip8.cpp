@@ -335,8 +335,6 @@ CpuChip8::Instruction CpuChip8::GenDRAW(uint8_t reg_x, uint8_t reg_y, uint8_t n_
     bool pixels_unset = frame_.XORSprite(x_coord, y_coord, n_rows,
       memory_ + index_register_);
     v_registers_[0xF] = pixels_unset;
-    DBG("\n");
-    frame_.DrawToStdout();
     NEXT;
   };
 }
