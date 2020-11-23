@@ -8,12 +8,14 @@
 #include "cpu_chip8.h"
 #include "sdl_viewer.h"
 
+// TODO: Emulate at 480Hz
+// At 480Hz, counters decrement once every 8 ops.
+// Run 480 cycles, then sleep up to a second.
 
-// TODO: Emulate at 60hz. (60 cycles per second).
 void Run() {
   CpuChip8 cpu;
   cpu.Initialize();
-  cpu.LoadROM("/Users/river/code/chip8/roms/TETRIS");
+  cpu.LoadROM("/Users/river/code/chip8/roms/VERS");
 
   int emulated_width = 64;
   int emulated_height = 32;
@@ -25,8 +27,7 @@ void Run() {
       emulated_width * emulated_height * 3, sizeof(uint8_t)));
   while (!quit) {
     cpu.RunCycle();
-    if (!cpu.FrameChanged()) { continue; }
-    cpu.GetFrame()->CopyToRGB24(rgb24, 255, 0, 0);
+    cpu.GetFrame()->CopyToRGB24(rgb24, 255, 20, 20);
     viewer.SetFrameRGB24(rgb24, emulated_width, emulated_height);
     auto events = viewer.Update();
 

@@ -15,6 +15,7 @@ SDLViewer::SDLViewer(const std::string& title, int width, int height) :
     throw std::runtime_error(SDL_GetError());
   }
   window_surf_ = SDL_GetWindowSurface(window_);
+  timer_.Start();
 }
 
 SDLViewer::~SDLViewer() {
@@ -35,6 +36,16 @@ std::vector<SDL_Event> SDLViewer::Update() {
   SDL_Rect strech = {0, 0, window_width_, window_height_};
   SDL_BlitScaled(frame_surf_, nullptr, window_surf_, &strech);
   SDL_UpdateWindowSurface(window_);
+  ++num_updates_;
+
+  // Compute fps and set window title.
+  float avg_fps = num_updates_ / (timer_.Ms() / 1000.0f);
+  SDL_SetWindowTitle(window_, 
+    (title_ + " - " + std::to_string(static_cast<int>(avg_fps)) + "fps").c_str());
+  if (timer_.Ms() >= 1'000) {
+    num_updates_ = 0;
+    timer_.Start();
+  }
 
   return events;
 }

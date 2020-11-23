@@ -65,6 +65,7 @@ class CpuChip8 {
     Instruction GenLDREG(uint8_t reg);
 
     void DbgMem();
+    void DbgReg();
 
     uint16_t current_opcode_;
 

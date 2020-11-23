@@ -41,9 +41,13 @@ void Image::SetAll(uint8_t value) {
 
 
 bool Image::XORSprite(int c, int r, int height, uint8_t* sprite) {
-  if (c >= cols_ || r >= rows_) {
-    throw std::runtime_error("Sprite renders out of bounds.");
-  }
+  // TODO: If the sprite is positioned so part of it is outside the
+  // coordinates of the display, it wraps around to the opposite side of the screen
+  // So perhaps bound it to ensure it starts within the screen, then from there
+  // we wrap as we draw.
+  c = std::min(c, cols_ - 1);
+  r = std::min(r, rows_ - 1);
+
   bool pixel_was_disabled = false;
   int dots = 0;
   for (int y = 0; y < height; y++) {

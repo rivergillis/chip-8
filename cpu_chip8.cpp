@@ -31,9 +31,7 @@ void CpuChip8::RunCycle() {
   // Read in the big-endian opcode word.
   current_opcode_ = memory_[program_counter_] << 8 |
     memory_[program_counter_ + 1];
-  std::cout << std::endl << std::hex << "PC: 0x" << program_counter_ << " - " << "0x"
-    << std::setfill('0') << std::setw(4) << static_cast<int>(current_opcode_)
-    << "\t";
+  DBG("\n0x%X - 0x%X\t", program_counter_, current_opcode_);
 
   auto instr = instructions_.find(current_opcode_);
   if (instr != instructions_.end()) {
@@ -62,6 +60,7 @@ void CpuChip8::RunCycle() {
       std::cout << "BEEP!" << std::endl;
     }
   }  
+  DbgReg();
 }
 
 void CpuChip8::Initialize() {
@@ -115,9 +114,6 @@ void CpuChip8::LoadROM(const std::string& filename) {
     throw std::runtime_error("No file or empty file.");
   }
   std::memcpy(memory_ + 0x200, bytes.data(), bytes.size());
-  // for (const uint8_t byte : bytes) {
-  //   std::cout << "0x" << std::hex << std::setfill('0') << std::setw(2) << static_cast<int>(byte) << "\t";
-  // }
   std::cout << std::endl << std::dec << "Loaded " << bytes.size() << " byte ROM " << filename << std::endl;
   DbgMem();
 }
@@ -218,6 +214,7 @@ CpuChip8::Instruction CpuChip8::GenCALL(uint16_t addr) {
 }
 CpuChip8::Instruction CpuChip8::GenSE(uint8_t reg, uint8_t val) {
   return [this, reg, val]() {
+    DBG("SE V%d, imm:%d", reg, val);
     v_registers_[reg] == val ? SKIP : NEXT;
   };
 }
@@ -240,6 +237,7 @@ CpuChip8::Instruction CpuChip8::GenLDIMM(uint8_t reg, uint8_t val) {
 }
 CpuChip8::Instruction CpuChip8::GenADDIMM(uint8_t reg, uint8_t val) {
   return [this, reg, val]() {
+    DBG("V%d <== V%d + 0x%X", reg, reg, val);
     v_registers_[reg] += val; // Note: Carry flag doesn't change here.
     NEXT;
   };
@@ -420,4 +418,15 @@ void CpuChip8::DbgMem() {
     }
   }
   DBG("\n");
+}
+
+void CpuChip8::DbgReg() {
+  DBG("\n [ ");
+  for (int i = 0; i <= 0xF; i++) {
+    DBG("(V%d %d) ", i, v_registers_[i]);
+  }
+  DBG("(I %d) ", index_register_);
+  DBG("(delay %d) ", delay_timer_);
+  DBG("(sound %d) ", sound_timer_);
+  DBG("] ");
 }

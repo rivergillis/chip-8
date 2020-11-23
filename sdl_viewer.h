@@ -1,8 +1,10 @@
 #ifndef SDL_VIEWER_H_
 #define SDL_VIEWER_H_
 
-#include "common.h"
 #include <SDL2/SDL.h>
+
+#include "common.h"
+#include "sdl_timer.h"
 
 // RAII SDL Window.
 
@@ -27,6 +29,10 @@ class SDLViewer {
     SDL_Surface* frame_surf_ = nullptr;
     SDL_Surface* window_surf_ = nullptr;
     SDL_Window* window_ = nullptr;
+
+    // FPS counting.
+    uint32_t num_updates_ = 0;
+    SDLTimer timer_;
 };
 
 #endif
