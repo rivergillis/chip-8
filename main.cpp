@@ -15,7 +15,7 @@
 void Run() {
   CpuChip8 cpu;
   cpu.Initialize();
-  cpu.LoadROM("/Users/river/code/chip8/roms/VERS");
+  cpu.LoadROM("/Users/river/code/chip8/roms/IBM");
 
   int emulated_width = 64;
   int emulated_height = 32;

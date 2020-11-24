@@ -41,23 +41,17 @@ void Image::SetAll(uint8_t value) {
 
 
 bool Image::XORSprite(int c, int r, int height, uint8_t* sprite) {
-  // TODO: If the sprite is positioned so part of it is outside the
-  // coordinates of the display, it wraps around to the opposite side of the screen
-  // So perhaps bound it to ensure it starts within the screen, then from there
-  // we wrap as we draw.
-  c = std::min(c, cols_ - 1);
-  r = std::min(r, rows_ - 1);
-
+  // Wrap around the screen as we draw.
   bool pixel_was_disabled = false;
   int dots = 0;
   for (int y = 0; y < height; y++) {
     int current_r = r + y;
-    if (current_r >= rows_) break;
+    while (current_r >= rows_) { current_r -= rows_; }
     uint8_t sprite_byte = sprite[y];
     DBG("%X ", sprite_byte);
     for (int x = 0; x < 8; x++) {
       int current_c = c + x;
-      if (current_c >= cols_) break;
+      while (current_c >= cols_) { current_c -= cols_; }
       // Note: We scan from MSbit to LSbit
       uint8_t sprite_val = (sprite_byte & (0x80 >> x)) >> (7-x);
       if (sprite_val > 0) {
