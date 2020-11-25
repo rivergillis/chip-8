@@ -379,16 +379,21 @@ CpuChip8::Instruction CpuChip8::GenADDI(uint8_t reg) {
 CpuChip8::Instruction CpuChip8::GenLDSPRITE(uint8_t reg) {
   return [this, reg]() {
     uint8_t digit = v_registers_[reg];
-    index_register_ = memory_[0x50 + (5 * digit)];
+    index_register_ = 0x50 + (5 * digit);
+    DBG("LDSPRITE digit %d. I <== 0x%X", digit, 0x50 + (5 * digit));
     NEXT;
   };
 }
 CpuChip8::Instruction CpuChip8::GenSTBCD(uint8_t reg) {
   return [this, reg]() {
     uint8_t value = v_registers_[reg];
-    memory_[index_register_]     = value / 100;
-    memory_[index_register_ + 1] = (value / 10) % 10;
-    memory_[index_register_ + 2] = (value % 100) % 10;
+    uint8_t val_hunds = value / 100;
+    uint8_t val_tens =  (value / 10) % 10;
+    uint8_t val_ones =  (value % 100) % 10;
+    memory_[index_register_]     = val_hunds;
+    memory_[index_register_ + 1] = val_tens;
+    memory_[index_register_ + 2] = val_ones;
+    DBG("SETBCD val: %d res: %d%d%d", value, val_hunds, val_tens, val_ones);
     NEXT;
   };
 }
@@ -402,7 +407,10 @@ CpuChip8::Instruction CpuChip8::GenSTREG(uint8_t reg) {
 }
 CpuChip8::Instruction CpuChip8::GenLDREG(uint8_t reg) {
   return [this, reg]() {
+    DBG("LDREG ");
     for (uint8_t v = 0; v <= reg; v++) {
+      DBG("(V%d <== M[%X] {%d})", v, index_register_ + v,
+        memory_[index_register_ + v]);
       v_registers_[v] = memory_[index_register_ + v];
     }
     NEXT;
