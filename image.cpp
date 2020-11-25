@@ -68,7 +68,7 @@ bool Image::XOR(int c, int r, uint8_t val) {
   uint8_t& current_val = At(c, r);
   uint8_t prev_val = current_val;
   current_val ^= val;
-  return current_val == 0 && prev_val >= 0;
+  return current_val == 0 && prev_val > 0;
 }
 
  void Image::CopyToRGB24(uint8_t* dst, int red_scale, int green_scale, int blue_scale) {
