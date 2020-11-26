@@ -14,12 +14,18 @@ SDLViewer::SDLViewer(const std::string& title, int width, int height) :
   if (!window_) {
     throw std::runtime_error(SDL_GetError());
   }
-  window_surf_ = SDL_GetWindowSurface(window_);
+  renderer_ = SDL_CreateRenderer(window_, -1, SDL_RENDERER_ACCELERATED);
+  if (!renderer_) {
+    throw std::runtime_error(SDL_GetError());
+  }
+  SDL_SetRenderDrawColor(renderer_, 0xFF, 0xFF, 0xFF, 0xFF);
+
   timer_.Start();
 }
 
 SDLViewer::~SDLViewer() {
-  if (frame_surf_) SDL_FreeSurface(frame_surf_);
+  if (window_tex_) SDL_DestroyTexture(window_tex_);
+  SDL_DestroyRenderer(renderer_);
   SDL_DestroyWindow(window_);
   SDL_Quit();
 }
@@ -27,15 +33,17 @@ SDLViewer::~SDLViewer() {
 
 std::vector<SDL_Event> SDLViewer::Update() {
   std::vector<SDL_Event> events;
-  if (!frame_surf_) {
+  if (!window_tex_) {
     throw std::runtime_error("Need to set the frame before calling Update().");
   }
 
   SDL_Event e;
   while (SDL_PollEvent(&e)) { events.push_back(e); }
-  SDL_Rect strech = {0, 0, window_width_, window_height_};
-  SDL_BlitScaled(frame_surf_, nullptr, window_surf_, &strech);
-  SDL_UpdateWindowSurface(window_);
+
+  SDL_RenderClear(renderer_);
+  SDL_RenderCopy(renderer_, window_tex_, NULL, NULL );
+  SDL_RenderPresent(renderer_);
+
   ++num_updates_;
 
   // Compute fps and set window title.
@@ -51,10 +59,12 @@ std::vector<SDL_Event> SDLViewer::Update() {
 }
 
 void SDLViewer::SetFrameRGB24(uint8_t* rgb24, int width, int height) {
-  if (frame_surf_) SDL_FreeSurface(frame_surf_);
-  frame_surf_ = SDL_CreateRGBSurfaceWithFormatFrom(rgb24, width, height,
-      24, width * 3, SDL_PIXELFORMAT_RGB24);
-  if (!frame_surf_) {
+  SDL_Surface* img_surf = SDL_CreateRGBSurfaceWithFormatFrom(rgb24, width,
+      height, 24, width * 3, SDL_PIXELFORMAT_RGB24);
+  if (window_tex_) SDL_DestroyTexture(window_tex_);
+  window_tex_ = SDL_CreateTextureFromSurface(renderer_, img_surf);
+  if (!window_tex_) {
     throw std::runtime_error(SDL_GetError());
   }
+  SDL_FreeSurface(img_surf);
 }

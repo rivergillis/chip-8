@@ -6,7 +6,7 @@
 #include "common.h"
 #include "sdl_timer.h"
 
-// RAII SDL Window.
+// RAII hardware-accelerated SDL Window.
 
 class SDLViewer {
   public:
@@ -21,14 +21,10 @@ class SDLViewer {
 
   private:
     std::string title_;
-    int window_width_;
-    int window_height_;
 
-    // Surface for the frames uploaded. This is blitted to window_surf_
-    // on Update().
-    SDL_Surface* frame_surf_ = nullptr;
-    SDL_Surface* window_surf_ = nullptr;
     SDL_Window* window_ = nullptr;
+    SDL_Renderer* renderer_ = NULL;
+    SDL_Texture* window_tex_ = nullptr;
 
     // FPS counting.
     uint32_t num_updates_ = 0;
