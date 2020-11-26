@@ -4,27 +4,33 @@
 
 #include "common.h"
 
-SDLViewer::SDLViewer(const std::string& title, int width, int height) : 
+SDLViewer::SDLViewer(const std::string& title, int width, int height, int window_scale) : 
       title_(title) {
   if(SDL_Init(SDL_INIT_VIDEO) < 0) {
     throw std::runtime_error(SDL_GetError());
   }
   window_ = SDL_CreateWindow(title.c_str(), SDL_WINDOWPOS_UNDEFINED,
-      SDL_WINDOWPOS_UNDEFINED, width, height, SDL_WINDOW_SHOWN);
+      SDL_WINDOWPOS_UNDEFINED, width * window_scale, height * window_scale, SDL_WINDOW_SHOWN);
   if (!window_) {
     throw std::runtime_error(SDL_GetError());
   }
-  renderer_ = SDL_CreateRenderer(window_, -1, SDL_RENDERER_ACCELERATED);
+  renderer_ = SDL_CreateRenderer(window_, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
   if (!renderer_) {
     throw std::runtime_error(SDL_GetError());
   }
   SDL_SetRenderDrawColor(renderer_, 0xFF, 0xFF, 0xFF, 0xFF);
 
+  window_tex_ = SDL_CreateTexture(renderer_, SDL_PIXELFORMAT_RGB24,
+    SDL_TEXTUREACCESS_STREAMING, width, height);
+  if (!window_tex_) {
+    throw std::runtime_error(SDL_GetError());
+  }
+
   timer_.Start();
 }
 
 SDLViewer::~SDLViewer() {
-  if (window_tex_) SDL_DestroyTexture(window_tex_);
+  SDL_DestroyTexture(window_tex_);
   SDL_DestroyRenderer(renderer_);
   SDL_DestroyWindow(window_);
   SDL_Quit();
@@ -40,7 +46,6 @@ std::vector<SDL_Event> SDLViewer::Update() {
   SDL_Event e;
   while (SDL_PollEvent(&e)) { events.push_back(e); }
 
-  SDL_RenderClear(renderer_);
   SDL_RenderCopy(renderer_, window_tex_, NULL, NULL );
   SDL_RenderPresent(renderer_);
 
@@ -58,13 +63,11 @@ std::vector<SDL_Event> SDLViewer::Update() {
   return events;
 }
 
-void SDLViewer::SetFrameRGB24(uint8_t* rgb24, int width, int height) {
-  SDL_Surface* img_surf = SDL_CreateRGBSurfaceWithFormatFrom(rgb24, width,
-      height, 24, width * 3, SDL_PIXELFORMAT_RGB24);
-  if (window_tex_) SDL_DestroyTexture(window_tex_);
-  window_tex_ = SDL_CreateTextureFromSurface(renderer_, img_surf);
-  if (!window_tex_) {
-    throw std::runtime_error(SDL_GetError());
-  }
-  SDL_FreeSurface(img_surf);
+void SDLViewer::SetFrameRGB24(uint8_t* rgb24, int height) {
+  void* pixeldata;
+  int pitch;
+  // Lock the texture and upload the image to the GPU.
+  SDL_LockTexture(window_tex_, nullptr, &pixeldata, &pitch);
+  std::memcpy(pixeldata, rgb24, pitch * height);
+  SDL_UnlockTexture(window_tex_);
 }

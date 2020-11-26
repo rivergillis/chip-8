@@ -7,17 +7,20 @@
 #include "sdl_timer.h"
 
 // RAII hardware-accelerated SDL Window.
+// Optimized for RGB24 texture streaming.
 
 class SDLViewer {
   public:
-    SDLViewer(const std::string& title, int width, int height);
+    // Width and height must be equal to the size of images uploaded
+    // via SetFrameRGB24.
+    SDLViewer(const std::string& title, int width, int height, int window_scale = 1);
     ~SDLViewer();
 
     // Renders the current frame, returns a list of all events.
     std::vector<SDL_Event> Update();
 
     // Assumes 8-bit RGB image with stride equal to width (no padding).
-    void SetFrameRGB24(uint8_t* rgb24, int width, int height);
+    void SetFrameRGB24(uint8_t* rgb24, int height);
 
   private:
     std::string title_;

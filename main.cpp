@@ -11,38 +11,43 @@
 #include "sdl_viewer.h"
 
 // TODO: Fix timers
-// TODO: Avoid slowdown using tex streaming? https://lazyfoo.net/tutorials/SDL/42_texture_streaming/index.php
+// TODO: CPU on worker thread. Ctor takes callback that executes
+// when a frame update happens. Main thread makes that callback copy to rgb24
+// and update the viewer frame.
+//  Inputs? ...
 
 using Clock = std::chrono::steady_clock;
+constexpr int kFrameUpdatesPerSecond = 60;
 
 void Run() {
   CpuChip8 cpu;
   cpu.Initialize();
-  cpu.LoadROM("/Users/river/code/chip8/roms/TETRIS");
+  cpu.LoadROM("/Users/river/code/chip8/roms/PONG");
 
   int emulated_width = 64;
   int emulated_height = 32;
 
-  SDLViewer viewer("c8-emu", emulated_width * 8, emulated_height * 8);
+  SDLViewer viewer("c8-emu", emulated_width, emulated_height, 8);
   uint8_t* rgb24 = static_cast<uint8_t*>(std::calloc(
       emulated_width * emulated_height * 3, sizeof(uint8_t)));
-  viewer.SetFrameRGB24(rgb24, emulated_width, emulated_height);
+  viewer.SetFrameRGB24(rgb24, emulated_height);
   bool quit = false;
   while (!quit) {
     std::vector<SDL_Event> events;
     auto start_time = Clock::now();
     bool updated = false;
+    int updates = 0;
     for (int i = 0; i < CpuChip8::kCycleSpeedHz; ++i) {
       cpu.RunCycle();
-      if (cpu.FrameChanged()) {
+      if (cpu.FrameChanged() && updates < kFrameUpdatesPerSecond) {
         cpu.GetFrame()->CopyToRGB24(rgb24, 255, 20, 20);
-        viewer.SetFrameRGB24(rgb24, emulated_width, emulated_height);
+        viewer.SetFrameRGB24(rgb24, emulated_height);
         auto new_events = viewer.Update();
         events.insert(events.end(), new_events.begin(), new_events.end());
-        updated = true;
+        updates++;
       }
     }
-    if (!updated) {
+    if (updates == 0) {
       auto new_events = viewer.Update();
       events.insert(events.end(), new_events.begin(), new_events.end());
     }
@@ -56,10 +61,8 @@ void Run() {
     std::chrono::duration<double> diff = stop_time - start_time;
     std::cout << "\nTook " << std::chrono::duration_cast<std::chrono::milliseconds>(diff).count() << " ms";
     std::chrono::duration<double> to_second = std::chrono::seconds(1) - diff;
-    if (to_second <= Clock::duration::zero()) {
-      throw std::runtime_error("Emulation speed unable to maintain 480Hz. Too many draws?");
-    } else {
-      std::cout << "\t sleeping for " << std::chrono::duration_cast<std::chrono::milliseconds>(to_second).count() << " ms" << std::endl;
+    if (to_second > Clock::duration::zero()) {
+      std::cout << "\t sleeping for " << std::chrono::duration_cast<std::chrono::milliseconds>(to_second).count() << " ms";
       std::this_thread::sleep_for(to_second);
     }
   }
