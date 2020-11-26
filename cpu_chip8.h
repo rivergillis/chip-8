@@ -8,6 +8,9 @@
 
 class CpuChip8 {
   public:
+    // Emulated number of cycles per second.
+    static constexpr int kCycleSpeedHz = 480;
+
     CpuChip8();
 
     // Resets all state.
@@ -17,6 +20,7 @@ class CpuChip8 {
     void LoadROM(const std::string& filename);
 
     // Emulate the next cycle.
+    // TODO: Return true if waitkey
     void RunCycle();
 
     void SetKeypadState(uint8_t (&state)[16]);
