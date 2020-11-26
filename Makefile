@@ -1,7 +1,7 @@
 CXX=g++
 RM=rm -f
 SDL2CFLAGS=-I/usr/local/include/SDL2 -D_THREAD_SAFE
-CXXFLAGS=-c --std=c++14 -Wall $(SDL2CFLAGS) -D DEBUG
+CXXFLAGS=-O2 -c --std=c++14 -Wall $(SDL2CFLAGS)
 
 # Load dynamic libs here
 LDFLAGS=-L/usr/local/lib -lSDL2

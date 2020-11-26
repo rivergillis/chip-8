@@ -10,33 +10,9 @@
 #include "cpu_chip8.h"
 #include "sdl_viewer.h"
 
-// TODO: Emulate at 480Hz
-// At 480Hz, counters decrement once every 8 ops.
-// Run 480 cycles, then sleep up to a second.
+// TODO: Fix timers
+// TODO: Avoid slowdown using tex streaming? https://lazyfoo.net/tutorials/SDL/42_texture_streaming/index.php
 
-/*
-while (!quit) {
-  time starttime = now();
-  for (int i = 0; i < 480; i++) {
-    bool waitkey = RunCycle();
-    if (waitkey) break;
-    if (cpu.frameChanged()) {
-      cpu.GetFrame()->CopyToRGB24(rgb24, 255, 20, 20);
-      viewer.SetFrameRGB24(rgb24, emulated_width, emulated_height);
-      auto events = viewer.Update();
-    }
-  }
-  // Update at least once
-  auto events = viewer.Update();
-  cpu.SetKeysFromEvents(events);
-  if events.quit { quit = true;}
-
-  time stoptime = now();
-  dur to_sec = dur::Seconds(1) - (stoptime - starttime)
-  if (to_sec <= 0) { WARN("TOO SLOW");}
-  sleep_for(to_sec);
-}
-*/
 using Clock = std::chrono::steady_clock;
 
 void Run() {
@@ -47,15 +23,13 @@ void Run() {
   int emulated_width = 64;
   int emulated_height = 32;
 
-  // TODO: Software rendering too slow :( Use hardware w/o vsync
   SDLViewer viewer("c8-emu", emulated_width * 8, emulated_height * 8);
   uint8_t* rgb24 = static_cast<uint8_t*>(std::calloc(
       emulated_width * emulated_height * 3, sizeof(uint8_t)));
   viewer.SetFrameRGB24(rgb24, emulated_width, emulated_height);
-  std::vector<SDL_Event> events;
-
   bool quit = false;
   while (!quit) {
+    std::vector<SDL_Event> events;
     auto start_time = Clock::now();
     bool updated = false;
     for (int i = 0; i < CpuChip8::kCycleSpeedHz; ++i) {
@@ -63,12 +37,15 @@ void Run() {
       if (cpu.FrameChanged()) {
         cpu.GetFrame()->CopyToRGB24(rgb24, 255, 20, 20);
         viewer.SetFrameRGB24(rgb24, emulated_width, emulated_height);
-        events = viewer.Update();
+        auto new_events = viewer.Update();
+        events.insert(events.end(), new_events.begin(), new_events.end());
         updated = true;
       }
     }
-    // Update at least once per second.
-    if (!updated) { events = viewer.Update(); }
+    if (!updated) {
+      auto new_events = viewer.Update();
+      events.insert(events.end(), new_events.begin(), new_events.end());
+    }
     auto stop_time = Clock::now();
 
     for (const auto& event : events) {
@@ -81,9 +58,10 @@ void Run() {
     std::chrono::duration<double> to_second = std::chrono::seconds(1) - diff;
     if (to_second <= Clock::duration::zero()) {
       throw std::runtime_error("Emulation speed unable to maintain 480Hz. Too many draws?");
+    } else {
+      std::cout << "\t sleeping for " << std::chrono::duration_cast<std::chrono::milliseconds>(to_second).count() << " ms" << std::endl;
+      std::this_thread::sleep_for(to_second);
     }
-    std::cout << "\t sleeping for " << std::chrono::duration_cast<std::chrono::milliseconds>(to_second).count() << " ms" << std::endl;
-    std::this_thread::sleep_for(to_second);
   }
 
   free(rgb24);

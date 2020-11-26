@@ -5,7 +5,7 @@
 #include "common.h"
 
 SDLViewer::SDLViewer(const std::string& title, int width, int height) : 
-      title_(title), window_width_(width), window_height_(height) {
+      title_(title) {
   if(SDL_Init(SDL_INIT_VIDEO) < 0) {
     throw std::runtime_error(SDL_GetError());
   }
