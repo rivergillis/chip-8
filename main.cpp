@@ -47,20 +47,29 @@ void Run() {
   int emulated_width = 64;
   int emulated_height = 32;
 
+  // TODO: Software rendering too slow :( Use hardware w/o vsync
   SDLViewer viewer("c8-emu", emulated_width * 8, emulated_height * 8);
-  bool quit = false;
-
   uint8_t* rgb24 = static_cast<uint8_t*>(std::calloc(
       emulated_width * emulated_height * 3, sizeof(uint8_t)));
+  viewer.SetFrameRGB24(rgb24, emulated_width, emulated_height);
+  std::vector<SDL_Event> events;
+
+  bool quit = false;
   while (!quit) {
     auto start_time = Clock::now();
+    bool updated = false;
     for (int i = 0; i < CpuChip8::kCycleSpeedHz; ++i) {
       cpu.RunCycle();
+      if (cpu.FrameChanged()) {
+        cpu.GetFrame()->CopyToRGB24(rgb24, 255, 20, 20);
+        viewer.SetFrameRGB24(rgb24, emulated_width, emulated_height);
+        events = viewer.Update();
+        updated = true;
+      }
     }
+    // Update at least once per second.
+    if (!updated) { events = viewer.Update(); }
     auto stop_time = Clock::now();
-    cpu.GetFrame()->CopyToRGB24(rgb24, 255, 20, 20);
-    viewer.SetFrameRGB24(rgb24, emulated_width, emulated_height);
-    auto events = viewer.Update();
 
     for (const auto& event : events) {
       if (event.type == SDL_QUIT) {
