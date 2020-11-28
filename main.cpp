@@ -27,7 +27,7 @@ void Run() {
   viewer.SetFrameRGB24(rgb24, emulated_height);
 
   CpuChip8::Options cpu_options;
-  cpu_options.rom_filename = "/Users/river/code/chip8/roms/PONG";
+  cpu_options.rom_filename = "/Users/river/code/chip8/roms/PONG2";
   cpu_options.produce_frame_callback =
     [emulated_height, rgb24, &frame_mutex, &viewer](Image* cpu_img) {
       const std::lock_guard<std::mutex> frame_lock(frame_mutex);
@@ -50,7 +50,7 @@ void Run() {
       }
     }
     // Give the CPU thread time to run.
-    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }
   cpu.Stop();
 

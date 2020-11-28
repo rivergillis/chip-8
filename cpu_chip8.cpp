@@ -58,20 +58,29 @@ void CpuChip8::EmulationLoop() {
   while (running_.load()) {
     options_.set_keypad_state_callback(keypad_state_);
     auto start_time = Clock::now();
-    for (int i = 0; i < kCycleSpeedHz; ++i) {
-      RunCycle();
-      if (frame_changed_) {
-        options_.produce_frame_callback(&frame_);
+    // Execute kCycleSpeedHz instructions, emulating the refresh rate.
+    for (int vsync = 0; vsync < kRefreshRateHz; vsync++) {
+      auto frame_start = Clock::now();
+      for (int cycle = 0; cycle < kCyclesPerFrame; cycle++) {
+        RunCycle();
+
+      }
+      options_.produce_frame_callback(&frame_);
+      // Run slightly faster than the emulated refresh rate, this is corrected in the per-second sleep.
+      std::chrono::duration<double> to_vsync = std::chrono::milliseconds(15) - (Clock::now() - frame_start);
+      if (to_vsync > Clock::duration::zero()) {
+        std::this_thread::sleep_for(to_vsync);
       }
     }
+
+    // Lock to kCycleSpeedHz every second.
     std::chrono::duration<double> diff = Clock::now() - start_time;
     std::cout << "\nCPU took " << std::chrono::duration_cast<std::chrono::milliseconds>(diff).count() << " ms";
     std::chrono::duration<double> to_second = std::chrono::seconds(1) - diff;
-    if (to_second <= Clock::duration::zero()) {
-      throw std::runtime_error("CPU emulation thread cannot keep up with 480Hz");
+    if (to_second > Clock::duration::zero()) {
+      std::cout << "\t CPU sleeping for " << std::chrono::duration_cast<std::chrono::milliseconds>(to_second).count() << " ms";
+      std::this_thread::sleep_for(to_second);
     }
-    std::cout << "\t CPU sleeping for " << std::chrono::duration_cast<std::chrono::milliseconds>(to_second).count() << " ms";
-    std::this_thread::sleep_for(to_second);
   }
 }
 

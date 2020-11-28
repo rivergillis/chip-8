@@ -15,8 +15,12 @@
 
 class CpuChip8 {
   public:
+    // Emulated refresh rate.
+    static constexpr int kRefreshRateHz = 60;
     // Emulated number of cycles per second.
-    static constexpr int kCycleSpeedHz = 480;
+    static constexpr int kCycleSpeedHz = kRefreshRateHz * 9;
+    // How many instructions to execute between each vsync.
+    static constexpr int kCyclesPerFrame = kCycleSpeedHz / kRefreshRateHz;
 
     struct Options {
       std::string rom_filename = "";
