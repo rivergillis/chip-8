@@ -10,11 +10,33 @@
 #include "cpu_chip8.h"
 #include "sdl_viewer.h"
 
-// TODO: Fix timers
 // TODO: CPU on worker thread. Ctor takes callback that executes
 // when a frame update happens. Main thread makes that callback copy to rgb24
 // and update the viewer frame.
-//  Inputs? ...
+
+// Main thread:
+// uint8_t* rgb24 = malloc(..)
+// Events events;
+// cpu.SetConsumeEvents([&events](cpu_events) { 
+//   Mutex events_lock;
+//   cpu_events.insert(cpu_events.end(), events.begin(), events.end())    
+//   events.clear(); 
+//  })
+// cpu.SetProduceFrame([&viewer, &rgb24](cpu_img) {
+//    // rgb24 could also be member of cpu
+//    cpu_img->CopyToRGB24(rgb24, 255, 20, 20);
+//    viewer.SetFrameRGB24(rgb24, emulated_height); // viewer mutex locks
+// })
+// while (!quit) {
+//  new_events = viewer.Update(); // viewer mutex lock
+//  Mutex events_lock;
+//  events += new_events
+// }
+// cpu.Stop();  
+// cpu_thread.Join();
+
+
+// TODO: Fix timers
 
 using Clock = std::chrono::steady_clock;
 constexpr int kFrameUpdatesPerSecond = 60;
