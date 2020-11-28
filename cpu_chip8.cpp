@@ -1,7 +1,10 @@
 #include "cpu_chip8.h"
 
+#include <thread>
+#include <atomic>
 #include <fstream>
 #include <iostream>
+#include <chrono>
 #include <iterator>
 #include <vector>
 
@@ -14,6 +17,8 @@
 constexpr int kMaxMemory = 0xFFF;
 constexpr int kMaxROMSize = kMaxMemory - 0x200;
 
+using Clock = std::chrono::steady_clock;
+
 namespace { 
 void DBG(const char* str, ...) {
   #ifdef DEBUG
@@ -25,7 +30,50 @@ void DBG(const char* str, ...) {
 }
 }
 
-CpuChip8::CpuChip8() : frame_(64, 32) { }
+CpuChip8::CpuChip8(const Options& options) : options_(options), frame_(64, 32),
+    running_(false) { 
+  if (!options_.produce_frame_callback || !options_.set_keypad_state_callback) {
+    throw std::runtime_error("Invalid options -- callbacks not provided.");
+  }
+}
+
+void CpuChip8::Start() {
+  if (running_.load()) throw std::runtime_error("Cannot call Start() twice.");
+  running_ = true;
+  cpu_thread_ = std::thread([this]() {
+    Initialize();
+    LoadROM(options_.rom_filename);
+    EmulationLoop();
+  });
+}
+
+void CpuChip8::Stop() {
+  if (!running_.load()) throw std::runtime_error("Must Start() before Stop()");
+  running_ = false;
+  // Wait for execution to pick up on the notification.
+  cpu_thread_.join();
+}
+
+void CpuChip8::EmulationLoop() {
+  while (running_.load()) {
+    options_.set_keypad_state_callback(keypad_state_);
+    auto start_time = Clock::now();
+    for (int i = 0; i < kCycleSpeedHz; ++i) {
+      RunCycle();
+      if (frame_changed_) {
+        options_.produce_frame_callback(&frame_);
+      }
+    }
+    std::chrono::duration<double> diff = Clock::now() - start_time;
+    std::cout << "\nCPU took " << std::chrono::duration_cast<std::chrono::milliseconds>(diff).count() << " ms";
+    std::chrono::duration<double> to_second = std::chrono::seconds(1) - diff;
+    if (to_second <= Clock::duration::zero()) {
+      throw std::runtime_error("CPU emulation thread cannot keep up with 480Hz");
+    }
+    std::cout << "\t CPU sleeping for " << std::chrono::duration_cast<std::chrono::milliseconds>(to_second).count() << " ms";
+    std::this_thread::sleep_for(to_second);
+  }
+}
 
 void CpuChip8::RunCycle() {
   // Read in the big-endian opcode word.

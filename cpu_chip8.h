@@ -2,35 +2,55 @@
 #define C8_CPU_CHIP8_H_
 
 #include <unordered_map>
+#include <atomic>
+#include <thread>
+#include <functional>
 
 #include "common.h"
 #include "image.h"
+
+// Emulates the CHIP-8 CPU in a background thread
+// This class is not thread-safe -- calls to Start() and Stop() should
+// originate from the same thread.
 
 class CpuChip8 {
   public:
     // Emulated number of cycles per second.
     static constexpr int kCycleSpeedHz = 480;
 
-    CpuChip8();
+    struct Options {
+      std::string rom_filename = "";
+      // Callbacks called by the CPU worker thread.
+      // Clears and fills 16-byte keypad_state_. Called once per second.
+      std::function<void(uint8_t*)> set_keypad_state_callback = nullptr;
+      // Produces the CPU frame. Called as produced.
+      std::function<void(Image*)> produce_frame_callback = nullptr;
+    };
+    CpuChip8(const Options& options);
 
-    // Resets all state.
+    // Begins emulation, executing kCycleSpeedHz instructions per second
+    // in a background thread. Must call Stop() prior to destruction.
+    void Start();
+
+    // Waits for the current instruction to finish executing, then joins
+    // the background execution thread.
+    void Stop();
+
+  private:
+    // Executes cycles until running_ becomes false.
+    void EmulationLoop();
+
+    // Resets all emulation state.
     void Initialize();
 
     // Loads a binary file ROM into memory.
     void LoadROM(const std::string& filename);
 
     // Emulate the next cycle.
-    // TODO: Return true if waitkey
     void RunCycle();
 
     void SetKeypadState(uint8_t (&state)[16]);
 
-    Image* GetFrame() { return &frame_; }
-
-    // Returns true if drawing was done on the last cycle.
-    bool FrameChanged() { return frame_changed_; }
-
-  private:
     void BuildInstructionSet();
 
     /// Instruction set implementation generators
@@ -71,6 +91,8 @@ class CpuChip8 {
     void DbgMem();
     void DbgReg();
 
+    const Options options_;
+
     uint16_t current_opcode_;
 
     // Map of opcodes to instructions. Built in Initialize().
@@ -109,6 +131,11 @@ class CpuChip8 {
     // drawing, the VF register is set.
     Image frame_;
     bool frame_changed_;
+
+    // Background thread that performs emulation.
+    std::thread cpu_thread_;
+    // Set to true on Start() and false on Stop().
+    std::atomic<bool> running_;
 };
 
 #endif

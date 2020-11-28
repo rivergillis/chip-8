@@ -11,6 +11,8 @@
 // Optimized for RGB24 texture streaming.
 // This class is thread-safe.
 
+// TODO: Double buffer so we can SetFrame during Update ?
+
 class SDLViewer {
   public:
     // Width and height must be equal to the size of images uploaded

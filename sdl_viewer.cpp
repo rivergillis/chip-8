@@ -15,7 +15,7 @@ SDLViewer::SDLViewer(const std::string& title, int width, int height, int window
   if (!window_) {
     throw std::runtime_error(SDL_GetError());
   }
-  renderer_ = SDL_CreateRenderer(window_, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+  renderer_ = SDL_CreateRenderer(window_, -1, SDL_RENDERER_ACCELERATED);
   if (!renderer_) {
     throw std::runtime_error(SDL_GetError());
   }
