@@ -1,6 +1,7 @@
 #ifndef SDL_VIEWER_H_
 #define SDL_VIEWER_H_
 
+#include <mutex>
 #include <SDL2/SDL.h>
 
 #include "common.h"
@@ -8,6 +9,7 @@
 
 // RAII hardware-accelerated SDL Window.
 // Optimized for RGB24 texture streaming.
+// This class is thread-safe.
 
 class SDLViewer {
   public:
@@ -25,8 +27,9 @@ class SDLViewer {
   private:
     std::string title_;
 
+    std::mutex mu_; // protects the following
     SDL_Window* window_ = nullptr;
-    SDL_Renderer* renderer_ = NULL;
+    SDL_Renderer* renderer_ = nullptr;
     SDL_Texture* window_tex_ = nullptr;
 
     // FPS counting.

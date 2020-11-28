@@ -1,5 +1,6 @@
 #include "sdl_viewer.h"
 
+#include <mutex>
 #include <SDL2/SDL.h>
 
 #include "common.h"
@@ -38,6 +39,7 @@ SDLViewer::~SDLViewer() {
 
 
 std::vector<SDL_Event> SDLViewer::Update() {
+  const std::lock_guard<std::mutex> lock(mu_);
   std::vector<SDL_Event> events;
   if (!window_tex_) {
     throw std::runtime_error("Need to set the frame before calling Update().");
@@ -64,6 +66,7 @@ std::vector<SDL_Event> SDLViewer::Update() {
 }
 
 void SDLViewer::SetFrameRGB24(uint8_t* rgb24, int height) {
+  const std::lock_guard<std::mutex> lock(mu_);
   void* pixeldata;
   int pitch;
   // Lock the texture and upload the image to the GPU.
