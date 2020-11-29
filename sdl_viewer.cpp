@@ -1,6 +1,7 @@
 #include "sdl_viewer.h"
 
 #include <mutex>
+#include <string>
 #include <SDL2/SDL.h>
 
 #include "common.h"

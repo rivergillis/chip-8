@@ -27,7 +27,8 @@ void Run() {
   viewer.SetFrameRGB24(rgb24, emulated_height);
 
   CpuChip8::Options cpu_options;
-  cpu_options.rom_filename = "/Users/river/code/chip8/roms/PONG2";
+  //cpu_options.rom_filename = "/Users/river/code/chip8/roms/PONG2";
+  cpu_options.rom_filename = "C:/Users/jrive/code/chip-8/roms/TETRIS";
   cpu_options.produce_frame_callback =
     [emulated_height, rgb24, &frame_mutex, &viewer](Image* cpu_img) {
       const std::lock_guard<std::mutex> frame_lock(frame_mutex);
@@ -57,7 +58,7 @@ void Run() {
   free(rgb24);
 }
 
-int main() {
+int main(int argc, char* args[]) {
   try {
     Run();
     std::cout << "Exit main() success";

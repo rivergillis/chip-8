@@ -7,6 +7,7 @@
 #include <chrono>
 #include <iterator>
 #include <vector>
+#include <string>
 
 #include "common.h"
 #include "image.h"
