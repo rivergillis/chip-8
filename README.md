@@ -1,5 +1,7 @@
 ## A modern, multithreaded chip-8 emulator written in portable C++11.
 
+![Emulator playing tetris](tetris.gif)
+
 #### macOS/Linux builds
 0. brew install sdl2 sdl2_image sdl2_mixer sdl2_net sdl2_ttf
 1. Makefile: set SDL2CFLAGS to output of sdl2-config --cflags
