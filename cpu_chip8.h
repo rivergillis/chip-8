@@ -121,6 +121,9 @@ class CpuChip8 {
     // Count down to 0 at 60hz when set.
     uint8_t delay_timer_;
     uint8_t sound_timer_;
+    // Number of cycles that have been executed.
+    uint64_t num_cycles_ = 0;
+
 
     uint16_t stack_[16];
     // Points to the next empty spot.

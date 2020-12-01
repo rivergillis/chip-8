@@ -7,6 +7,7 @@
 #include <chrono>
 #include <iterator>
 #include <vector>
+#include <cmath>
 #include <string>
 
 #include "common.h"
@@ -107,17 +108,15 @@ void CpuChip8::RunCycle() {
     frame_changed_ = false;
   }
 
-  // Update timers (assuming 60hz cycles)
-  if(delay_timer_ > 0) {
-    delay_timer_--;
-  }
-  if(sound_timer_ > 0) {
-    sound_timer_--;
-    if(sound_timer_ == 0) {
-      // TODO: Beep.
-      std::cout << "BEEP!" << std::endl;
+  // Update timers
+  num_cycles_++;
+  if (num_cycles_ % kCyclesPerFrame == 0) {
+    if (delay_timer_ > 0) delay_timer_--;
+    if (sound_timer_ > 0) {
+      std::cout << "BEEPING" << std::endl;
+      sound_timer_--;
     }
-  }  
+  }
   DbgReg();
 }
 
