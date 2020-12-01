@@ -58,11 +58,11 @@ void CpuChip8::Stop() {
 
 void CpuChip8::EmulationLoop() {
   while (running_.load()) {
-    options_.set_keypad_state_callback(keypad_state_);
     auto start_time = Clock::now();
     // Execute kCycleSpeedHz instructions, emulating the refresh rate.
     for (int vsync = 0; vsync < kRefreshRateHz; vsync++) {
       auto frame_start = Clock::now();
+      options_.set_keypad_state_callback(keypad_state_);
       for (int cycle = 0; cycle < kCyclesPerFrame; cycle++) {
         RunCycle();
 
@@ -100,14 +100,6 @@ void CpuChip8::RunCycle() {
       std::to_string(current_opcode_));
   }
 
-  // We only alter the framebuffer if the screen is cleared
-  // or if a sprite is drawn.
-  if (current_opcode_ == 0x00E0 || (current_opcode_ & 0xF000) == 0xD000) {
-    frame_changed_ = true;
-  } else {
-    frame_changed_ = false;
-  }
-
   // Update timers
   num_cycles_++;
   if (num_cycles_ % kCyclesPerFrame == 0) {
@@ -131,7 +123,6 @@ void CpuChip8::Initialize() {
   std::memset(stack_, 0, 16);
   stack_pointer_ = 0;
   std::memset(keypad_state_, 0, 16);
-  frame_changed_ = true;
   
   uint8_t chip8_fontset[80] =
   { 

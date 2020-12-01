@@ -25,7 +25,7 @@ class CpuChip8 {
     struct Options {
       std::string rom_filename = "";
       // Callbacks called by the CPU worker thread.
-      // Clears and fills 16-byte keypad_state_. Called once per second.
+      // Clears and fills 16-byte keypad_state_. Called once at kFreshRateHz.
       std::function<void(uint8_t*)> set_keypad_state_callback = nullptr;
       // Produces the CPU frame. Called as produced.
       std::function<void(Image*)> produce_frame_callback = nullptr;
@@ -137,7 +137,6 @@ class CpuChip8 {
     // Drawing is done in XOR mode and if a pixel is turned off as a result of
     // drawing, the VF register is set.
     Image frame_;
-    bool frame_changed_;
 
     // Background thread that performs emulation.
     std::thread cpu_thread_;
