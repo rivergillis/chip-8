@@ -27,7 +27,7 @@ void Run() {
   std::vector<SDL_Event> events;
 
   CpuChip8::Options cpu_options;
-  cpu_options.rom_filename = "/Users/river/code/chip8/roms/TETRIS";
+  cpu_options.rom_filename = "/Users/river/code/chip8/roms/VERS";
   // cpu_options.rom_filename = "C:/Users/jrive/code/chip-8/roms/TETRIS";
   cpu_options.produce_frame_callback =
     [emulated_height, rgb24, &frame_mutex, &viewer](Image* cpu_img) {

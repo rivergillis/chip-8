@@ -2,6 +2,8 @@
 
 ![Emulator playing tetris](tetris.gif)
 
+**[Check out my blog series documenting the creation of this emulator!](https://river.codes/emulating-a-computer-part-1/)**
+
 #### macOS/Linux builds
 0. brew install sdl2 sdl2_image sdl2_mixer sdl2_net sdl2_ttf
 1. Makefile: set SDL2CFLAGS to output of sdl2-config --cflags
